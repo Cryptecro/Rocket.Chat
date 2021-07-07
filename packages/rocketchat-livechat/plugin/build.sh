@@ -1,16 +1,23 @@
-cd packages/rocketchat-livechat/app
-meteor build .meteor/build/ --directory
+# set -x
+export NODE_ENV="production"
+export LIVECHAT_DIR="./public/livechat"
+export LIVECHAT_ASSETS_DIR="./private/livechat"
 
-mkdir -p ../public
+ROOT=$(pwd)
 
-rm -f ../public/livechat.css
-rm -f ../public/livechat.js
-rm -f ../public/head.html
+rm -rf $LIVECHAT_DIR
+mkdir -p $LIVECHAT_DIR
 
-cp .meteor/build/bundle/programs/web.browser/*.css ../public/livechat.css
-cp .meteor/build/bundle/programs/web.browser/*.js ../public/livechat.js
-cp .meteor/build/bundle/programs/web.browser/head.html ../public/head.html
+rm -rf $LIVECHAT_ASSETS_DIR
+mkdir $LIVECHAT_ASSETS_DIR
 
-# echo "body {background-color: red;}" > livechat.css
+#NEW LIVECHAT#
+echo "Installing Livechat ${LATEST_LIVECHAT_VERSION}..."
+cd $LIVECHAT_DIR
 
-rm -rf .meteor/build/
+cp -a $ROOT/node_modules/\@rocket.chat/livechat/build/. ./
+# change to lowercase so all injected junk from rocket.chat is not sent: https://github.com/meteorhacks/meteor-inject-initial/blob/master/lib/inject-core.js#L10
+# this is not harmful since doctype is case-insesitive: https://www.w3.org/TR/html5/syntax.html#the-doctype
+meteor node -e 'fs.writeFileSync("index.html", fs.readFileSync("index.html").toString().replace("<!DOCTYPE", "<!doctype"));'
+cd $ROOT/$LIVECHAT_ASSETS_DIR
+cp ../../public/livechat/index.html .
